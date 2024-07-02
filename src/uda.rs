@@ -206,6 +206,9 @@ impl IssuerWrapper for UniqueDigitalAsset {
 #[cfg(test)]
 mod test {
     use super::*;
+    use amplify::hex::FromHex;
+    use bp::{Outpoint, Txid};
+    use rgbstd::{invoice::Precision, Allocation};
 
     #[test]
     fn iimpl_check() {
@@ -216,5 +219,32 @@ mod test {
             }
             panic!("invalid UDA RGB21 interface implementation");
         }
+    }
+
+    #[test]
+    fn test_issue_rgb21() {
+
+        let beneficiary_txid = 
+        Txid::from_hex("d8b91da7d1afc7e2c263413d23239eb6ac4d0f1b7c3c8d83ef2625e9a12cfbad").unwrap();
+        let beneficiary = Outpoint::new(beneficiary_txid, 1);
+        let allocation = Allocation::with(1, 1);
+        let media_bytes = "image".as_bytes();
+        let builder = Rgb21::testnet::<UniqueDigitalAsset>("ssi:anonymous",
+            "rgb21",
+            "rgb21_demo",
+            None,
+            Precision::Indivisible
+            ).expect("schema fails to implement RGB21 interface")
+            .allocate(bp::dbc::Method::OpretFirst, beneficiary, allocation)
+            .expect("allocate failed");
+        let valid_contract = builder.issue_contract(1, &media_bytes)
+            .expect("contract doesn't fit schema requirements");
+        
+        let contract_id = valid_contract.contract_id();
+        
+    
+        eprintln!("{contract_id}");
+
+
     }
 }
